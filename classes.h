@@ -3,6 +3,7 @@
 //Defining Enums
 enum lines {NOLINE,SINGLELINE,DOUBLELINE};
 enum modes {NOMODE,INT_FLOAT,INT_FLOAT_FLOAT_FLOAT,INT_INT_INT_INT_INT};
+enum parameters {EXTERNAL_FORCE_X,EXTERNAL_FORCE_Y,EXTERNAL_FORCE_Z};
 enum sizes {NODES,ELEMENTS,DIRICHLET};
 enum coords {EQUIS,YE,ZETA};
 
@@ -136,12 +137,18 @@ class condition: public item{
 //Class that represents our problem file.
 class mesh{
     //Setting our node List, element List, id of dirich list and condition list....
+        float parameters[3];
         int sizes[3];
         node *node_list;
         element *element_list;
         int *indices_dirich;
         condition *dirichlet_list;
     public:
+        void setParameters(float f_x, float f_y, float f_z){
+            parameters[EXTERNAL_FORCE_X]=f_x;
+            parameters[EXTERNAL_FORCE_Y]=f_y;
+            parameters[EXTERNAL_FORCE_Z]=f_z;
+        }
         void setSizes(int nnodes,int neltos,int ndirich){
             sizes[NODES] = nnodes;
             sizes[ELEMENTS] = neltos;
@@ -149,6 +156,9 @@ class mesh{
         }
         int getSize(int s){
             return sizes[s];
+        }
+        float getParameter(int p){
+            return parameters[p];
         }
         void createData(){
             node_list = new node[sizes[NODES]];
