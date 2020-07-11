@@ -128,7 +128,7 @@ class condition: public item{
 
     public:
         void setValues(int a,float b,float c,float d,int e,int f,float g, float h){
-            node1 = e;
+            node1 = f;
             value = g;
         }
 

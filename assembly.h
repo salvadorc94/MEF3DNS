@@ -1,4 +1,4 @@
-//Library that assembly everything and apply conditions and calculate
+//Library that assembly every element and apply conditions and calculate
 void ensamblaje(mesh &m,vector<Matrix> &localKs,vector<Vector> &localbs,Matrix &K,Vector &b){
     int nnodes = m.getSize(NODES);
     for(int i=0;i<m.getSize(ELEMENTS);i++){

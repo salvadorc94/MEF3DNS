@@ -12,19 +12,19 @@ void obtenerDatos(istream &file,int nlines,int n,int mode,item* item_list){
     for(int i=0;i<n;i++){
         switch(mode){
         case INT_FLOAT:
-            int e0; float r0;
-            file >> e0 >> r0;
-            item_list[i].setValues(0,0,0,0,e0,0,r0,0);
+            int e0; float condition_value;
+            file >> e0 >> condition_value;
+            item_list[i].setValues(0,0,0,0,0,e0,condition_value,0);
             break;
         case INT_FLOAT_FLOAT_FLOAT:
-            int e; float r,rr,rrr;
-            file >> e >> r >> rr >> rrr;
-            item_list[i].setValues(e,r,rr,rrr,0,0,0,0);
+            int e; float coord1, coord2, coord3;
+            file >> e >> coord1 >> coord2 >> coord3;
+            item_list[i].setValues(e,coord1,coord2,coord3,0,0,0,0);
             break;
         case INT_INT_INT_INT_INT:
-            int e1,e2,e3,e4,e5;
-            file >> e1 >> e2 >> e3 >> e4 >>e5;
-            item_list[i].setValues(e1,0,0,0,e2,e3,e4,e5);
+            int element,node1,node2,node3,node4;
+            file >> element >> node1 >> node2 >> node3 >> node4;
+            item_list[i].setValues(element,0,0,0,node1,node2,node3,node4);
             break;
         }
     }
@@ -38,8 +38,6 @@ void correctConditions(int n,condition *list,int *indices){
     for(int i=0;i<n-1;i++){
         int pivot = list[i].getNode1();
         for(int j=i;j<n;j++)
-            //Si la condicion actual corresponde a un nodo posterior al nodo eliminado por
-            //aplicar la condicion anterior, se debe actualizar su posicion.
             if(list[j].getNode1()>pivot)
                 list[j].setNode1(list[j].getNode1()-1);
     }
@@ -154,9 +152,8 @@ int *createNonDirichletIndices(int nn,int nd,int *dirich_indices){
     return ndi;
 }
 
-void writeResults(mesh m,vector<Vector> Ts,char *filename){
+void writeResults(mesh m,Vector T,char *filename){
     char outputfilename[150];
-    Vector T;
 
     int nn = m.getSize(NODES);
     int nd = m.getSize(DIRICHLET);
@@ -170,44 +167,40 @@ void writeResults(mesh m,vector<Vector> Ts,char *filename){
 
     file << "GiD Post Results File 1.0\n";
 
-    for(int step=1;step<=Ts.size();step++){
-        T.clear();
-        copyVector(Ts.at(step-1),T);
+    file << "Result \"Velocity\" \"Load Case 1\" 1 Vector OnNodes\nComponentNames \"u\" \"v\" \"w\"\nValues\n";
 
-        file << "Result \"Velocity\" \"Load Case 1\" "<<step<<" Vector OnNodes\nComponentNames \"u\" \"v\" \"w\" \nValues\n";
-
-        for(int i=0;i<nn;i++){
-            int d_index = getIndex(i+1,nd,dirich_indices);
-            if(d_index != -1)
-                file << i+1 << " " << dirich[d_index].getValue() << " ";
-            else{
-                int T_index = getIndex(i+1,3*nn-nd,non_dirich_indices);
-                file << i+1 << " " << T.at(T_index) << " ";
-            }
-            d_index = getIndex(i+1+nn,nd,dirich_indices);
-            if(d_index != -1)
-                file << dirich[d_index].getValue() << "\n";
-            else{
-                int T_index = getIndex(i+1+nn,3*nn-nd,non_dirich_indices);
-                file << T.at(T_index) << "\n";
-            }
+    for(int i=0;i<nn;i++){
+        int d_index = getIndex(i+1,nd,dirich_indices);
+        if(d_index != -1)
+            file << i+1 << " " << dirich[d_index].getValue() << " ";
+        else{
+            int T_index = getIndex(i+1,4*nn-nd,non_dirich_indices);
+            file << i+1 << " " << T.at(T_index) << " ";
         }
-
-        file << "End values\n";
-
-        file << "\nResult \"Pressure\" \"Load Case 1\" "<<step<<" Scalar OnNodes\nComponentNames \"p\"\nValues\n";
-
-        for(int i=0;i<nn;i++){
-            int d_index = getIndex(i+1+2*nn,nd,dirich_indices);
-            if(d_index != -1)
-                file << i+1 << " " << dirich[d_index].getValue() << "\n";
-            else{
-                int T_index = getIndex(i+1+2*nn,3*nn-nd,non_dirich_indices);
-                file << i+1 << " " << T.at(T_index) << "\n";
-            }
+        d_index = getIndex(i+1+nn,nd,dirich_indices);
+        if(d_index != -1)
+            file << dirich[d_index].getValue() << "\n";
+        else{
+            int T_index = getIndex(i+1+nn,4*nn-nd,non_dirich_indices);
+            file << T.at(T_index) << "\n";
         }
-
-        file << "End values\n\n";
     }
+
+    file << "End values\n";
+
+    file << "\nResult \"Pressure\" \"Load Case 1\" 1 Scalar OnNodes\nComponentNames \"p\"\nValues\n";
+
+    for(int i=0;i<nn;i++){
+        int d_index = getIndex(i+1+2*nn,nd,dirich_indices);
+        if(d_index != -1)
+            file << i+1 << " " << dirich[d_index].getValue() << "\n";
+        else{
+            int T_index = getIndex(i+1+2*nn,4*nn-nd,non_dirich_indices);
+            file << i+1 << " " << T.at(T_index) << "\n";
+        }
+    }
+
+    file << "End values\n";
+
     file.close();
 }
