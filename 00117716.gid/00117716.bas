@@ -39,7 +39,7 @@ EndDirichlet
 Dirichlet_W
 *Set Cond Dirichlet_W *nodes
 *loop nodes *OnlyInCond
-*NodesNum *cond(v,real)
+*NodesNum *cond(w,real)
 *end nodes
 EndDirichlet
 
