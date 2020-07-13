@@ -3,10 +3,10 @@
 #include "classes.h"
 #include "tools.h"
 #include "display_tools.h"
-#include "assembly.h"
-#include "sel.h"
 #include "sel_tools.h"
 #include "components.h"
+#include "sel.h"
+#include "assembly.h"
 
 int main(int argc, char const *argv[])
 {

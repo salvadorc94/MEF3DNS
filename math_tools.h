@@ -8,6 +8,18 @@ using namespace std;
 typedef vector<float> Vector;
 typedef vector<Vector> Matrix;
 
+//New One
+void joinTwoVectors(Vector &v1, Vector &v2, Vector &copy){
+    for(int i=0;i<copy.size();i++){
+        if(i<12){
+            copy.at(i) = v1.at(i);
+        }else{
+            copy.at(i) = v2.at(i-12);
+        }
+        
+    }
+}
+
 void zeroes(Matrix &M,int n){
     for(int i=0;i<n;i++){
         vector<float> row(n,0.0);
@@ -94,7 +106,6 @@ void productRealMatrix(float real,Matrix M,Matrix &R){
 }
 
 void getMinor(Matrix &M,int i, int j){
-    //cout << "Calculando menor ("<<i+1<<","<<j+1<<")...\n";
     M.erase(M.begin()+i);
     for(int i=0;i<M.size();i++)
         M.at(i).erase(M.at(i).begin()+j);
@@ -118,7 +129,6 @@ void cofactors(Matrix M, Matrix &Cof){
     zeroes(Cof,M.size());
     for(int i=0;i<M.size();i++){
         for(int j=0;j<M.at(0).size();j++){
-            //cout << "Calculando cofactor ("<<i+1<<","<<j+1<<")...\n";
             Matrix minor;
             copyMatrix(M,minor);
             getMinor(minor,i,j);

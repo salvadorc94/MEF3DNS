@@ -11,22 +11,22 @@ void obtenerDatos(istream &file,int nlines,int n,int mode,item* item_list){
 
     for(int i=0;i<n;i++){
         switch(mode){
-        case INT_FLOAT:
-            int e0; float condition_value;
-            file >> e0 >> condition_value;
-            item_list[i].setValues(0,0,0,0,0,e0,condition_value,0);
-            break;
-        case INT_FLOAT_FLOAT_FLOAT:
-            int e; float coord1, coord2, coord3;
-            file >> e >> coord1 >> coord2 >> coord3;
-            item_list[i].setValues(e,coord1,coord2,coord3,0,0,0,0);
-            break;
-        case INT_INT_INT_INT_INT:
-            int element,node1,node2,node3,node4;
-            file >> element >> node1 >> node2 >> node3 >> node4;
-            item_list[i].setValues(element,0,0,0,node1,node2,node3,node4);
-            break;
-        }
+            case INT_FLOAT:
+                int e0; float condition_value;
+                file >> e0 >> condition_value;
+                item_list[i].setValues(0,0,0,0,0,e0,condition_value,0);
+                break;
+            case INT_FLOAT_FLOAT_FLOAT:
+                int e; float coord1, coord2, coord3;
+                file >> e >> coord1 >> coord2 >> coord3;
+                item_list[i].setValues(e,coord1,coord2,coord3,0,0,0,0);
+                break;
+            case INT_INT_INT_INT_INT:
+                int element,node1,node2,node3,node4;
+                file >> element >> node1 >> node2 >> node3 >> node4;
+                item_list[i].setValues(element,0,0,0,node1,node2,node3,node4);
+                break;
+            }
     }
 }
 
@@ -44,9 +44,9 @@ void correctConditions(int n,condition *list,int *indices){
 }
 
 //Function for adding the extension ".dat" to our file
-void addExtension(char *newfilename,char *filename,char *extension){
+void addExtension(char *newfilename,char *filename, string extension){
     int ori_length = strlen(filename);
-    int ext_length = strlen(extension);
+    int ext_length = extension.length();
     int i;
     for(i=0;i<ori_length;i++)
         newfilename[i] = filename[i];
@@ -142,9 +142,9 @@ int getIndex(int v, int s, Vector vec){
 }
 
 int *createNonDirichletIndices(int nn,int nd,int *dirich_indices){
-    int *ndi = new int[3*nn-nd];
+    int *ndi = new int[4*nn-nd];
     int pos = 0;
-    for(int i=1;i<=3*nn;i++)
+    for(int i=1;i<=4*nn;i++)
         if(!findIndex(i,nd,dirich_indices)){
             ndi[pos] = i;
             pos++;

@@ -332,7 +332,6 @@ void calculateTau(int i,Vector &Tau,mesh m){
 }
 
 
-/*
 Matrix createLocalM(int e,mesh &m){
     Matrix matrixA,matrixI,matrixL,matrixG,matrixD;
     float J,Determinant;
@@ -354,48 +353,56 @@ Matrix createLocalM(int e,mesh &m){
     
     float real_a = (float) (J)/(120*Determinant);
     calculateGamma(e,GammaMatrix,m);
-    calculateGamma(g_matrix);
     calculateAlpha(e,Alpha,m);
     calculateBeta(Beta);
     productRealMatrix(real_a, productMatrixMatrix(GammaMatrix,productMatrixMatrix(Alpha,Beta,3,3,12),12,3,12),matrixA);
 
+    //Matrix I
+    Matrix alpha_t, beta_t;
+    transpose(Alpha, alpha_t);
+    transpose(Beta,beta_t);
+    element ele = m.getElement(e);
+    float cord1 = selectCoord(YE,selectNode(1,ele,m));
+    float cord2 = selectCoord(YE,selectNode(2,ele,m));
+    float cord3 = selectCoord(YE,selectNode(3,ele,m));
+    float cord4 = selectCoord(YE,selectNode(4,ele,m));
+    float i =  cord1+cord2+cord3+cord4;
+    float real_i = (float) (J*i)/(24*Determinant*Determinant);
+    productRealMatrix(real_i, productMatrixMatrix(beta_t,productMatrixMatrix(alpha_t,productMatrixMatrix(Alpha,Beta,3,3,12),3,3,12),12,3,12),matrixI);
 
-    //Matrix K
-    Matrix Alpha_t,Beta_t;
+    //NOTA omega con una M es mi B
+    //ommega con dos M es un elemento de la matriz G
 
-    nu = m.getParameter(DYNAMIC_VISCOSITY);
-    Ve = calculateLocalVolume(e,m);
-    
-    float real_k = (float) (nu*Ve)/(Determinant*Determinant);
+    //Matrix L
+    Matrix omega;
+    calculateOmega(omega);
+    float cord1X = selectCoord(EQUIS,selectNode(1,ele,m));
+    float cord2X = selectCoord(EQUIS,selectNode(2,ele,m));
+    float cord3X = selectCoord(EQUIS,selectNode(3,ele,m));
+    float cord4X = selectCoord(EQUIS,selectNode(4,ele,m));
+    float l = cord1X+cord2X+cord3X+cord4X+i;
+    float real_l = (float) (J*l)/(24*Determinant*Determinant);
+    //El real negativo por como quedo al aplicar el MEF
+    productRealMatrix(-real_l, productMatrixMatrix(beta_t,productMatrixMatrix(alpha_t,productMatrixMatrix(Alpha,omega,3,3,4),3,3,4),12,3,4),matrixL);
 
-    transpose(Alpha,Alpha_t);
-    transpose(Beta,Beta_t);
-
-    productRealMatrix(real_k,productMatrixMatrix(Beta_t,productMatrixMatrix(Alpha_t,productMatrixMatrix(Alpha,Beta,3,3,12),3,3,12),12,3,12),matrixK);
-
-    
     //Matrix G
-    Matrix Omega;
-    
-    rho = m.getParameter(DENSITY);
-    float real_g = (float) (J/(24*rho*Determinant));
-
-    calculateOmega(Omega);
-    productRealMatrix(real_g,productMatrixMatrix(g_matrix,productMatrixMatrix(Alpha,Omega,3,3,4),12,3,4),matrixG);
+    Matrix ommega;
+    calculateOmmega(e,ommega,m);
+    float real_g = (float) J/(360*Determinant);
+    productRealMatrix(real_g,productMatrixMatrix(ommega,productMatrixMatrix(Alpha,omega,3,3,4),12,3,4),matrixG);
 
     //Matrix D
-    Matrix g_matrix_t,Omega_t;
-    float real_d = (float)(J/(24*Determinant));
-
-    transpose(Omega, Omega_t);
-    transpose(g_matrix,g_matrix_t);
-    productRealMatrix(real_d,productMatrixMatrix(Omega_t,productMatrixMatrix(Alpha_t,g_matrix_t,3,3,12),4,3,12),matrixD);
+    Matrix omega_t,sigma;
+    transpose(omega,omega_t);
+    calculateSigma(e,sigma,m);
+    float real_d = (float) J/(360*Determinant);
+    productRealMatrix(real_d,productMatrixMatrix(omega_t,productMatrixMatrix(alpha_t,sigma,3,3,12),4,3,12),matrixD);
 
     //Matrix M
     Matrix M;
     zeroes(M,16);
-    ubicarSubMatriz(M,0,11,0,11, sumMatrix(matrixA,matrixK,12,12));
-    ubicarSubMatriz(M,0,11,12,15,matrixG);
+    ubicarSubMatriz(M,0,11,0,11, sumMatrix(matrixA,matrixI,12,12));
+    ubicarSubMatriz(M,0,11,12,15,sumMatrix(matrixL,matrixG,12,4));
     ubicarSubMatriz(M,12,15,0,11,matrixD);
 
     return M;
@@ -412,12 +419,13 @@ void calculateF(Vector &f, mesh &m){
 
 Vector createLocalb(int e,mesh &m){
     float J;
-    Vector b,b_aux,f;
-    Matrix g_matrix;
+    Vector b,b_aux,f,tau,b_total,tau_aux;
+    Matrix lambda;
 
     calculateF(f, m);
+    calculateTau(e,tau,m);
 
-    calculateGamma(g_matrix);
+    calculateLambda(e,lambda,m);
 
     J = calculateLocalJ(e,m);
 
@@ -426,9 +434,18 @@ Vector createLocalb(int e,mesh &m){
         exit(EXIT_FAILURE);
     }
     
-    zeroes(b_aux,16);
-    productMatrixVector(g_matrix,f,b_aux);
-    productRealVector(J/24,b_aux,b);
+    //vector F 12x1
+    zeroes(b_aux,12);
+    productMatrixVector(lambda,f,b_aux);
+    productRealVector(J/240,b_aux,b);
+
+    //Vector H 4x1
+    zeroes(tau_aux,4);
+    productRealVector(J/360,tau,tau_aux);
+
+    zeroes(b_total,16);
+
+    joinTwoVectors(b,tau_aux,b_total);
     
-    return b;
-}*/
+    return b_total;
+}
